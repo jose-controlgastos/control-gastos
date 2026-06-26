@@ -14,7 +14,7 @@ except ImportError:
 # Configuración de página con diseño profesional
 st.set_page_config(page_title="Control de Obra PRO", layout="wide")
 
-# --- INYECCIÓN DE DISEÑO AVANZADO (Balance de colores neutros y formas) ---
+# --- INYECCIÓN DE DISEÑO AVANZADO (Corrección de contraste en Sidebar) ---
 st.markdown("""
     <style>
         /* Fondo general de la aplicación */
@@ -26,13 +26,20 @@ st.markdown("""
         section[data-testid="stSidebar"] {
             background-color: #0f172a !important;
         }
-        section[data-testid="stSidebar"] __sub-container__ * {
+        
+        /* CORRECCIÓN: Forzar color claro en todos los textos y etiquetas del Sidebar */
+        section[data-testid="stSidebar"] label,
+        section[data-testid="stSidebar"] p,
+        section[data-testid="stSidebar"] span,
+        section[data-testid="stSidebar"] div {
             color: #f1f5f9 !important;
         }
+        
+        /* Campos de entrada dentro del Sidebar */
         section[data-testid="stSidebar"] input {
             background-color: #1e293b !important;
             border: 1px solid #334155 !important;
-            color: #f1f5f9 !important;
+            color: #ffffff !important;
         }
 
         /* Tipografías y títulos limpios */
