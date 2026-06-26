@@ -16,6 +16,49 @@ st.set_page_config(page_title="Control de Obra PRO", page_icon="🏗️", layout
 def conectar():
     return sqlite3.connect("control_obras_PRO.db")
 
+# --- NUEVA FUNCIÓN AUTOMÁTICA PARA INTERNET ---
+def inicializar_base_de_datos():
+    conn = conectar()
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario TEXT UNIQUE,
+            contrasena TEXT,
+            nombre TEXT
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS contactos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT UNIQUE,
+            tipo TEXT,
+            telefono TEXT
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS gastos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fecha TEXT,
+            categoria TEXT,
+            contacto_id INTEGER,
+            concepto TEXT,
+            importe REAL,
+            usuario_registro TEXT,
+            FOREIGN KEY(contacto_id) REFERENCES contactos(id)
+        )
+    ''')
+    cursor.execute("SELECT * FROM usuarios WHERE usuario='admin'")
+    if not cursor.fetchone():
+        hash_pass = hashlib.sha256("1234".encode()).hexdigest()
+        cursor.execute("INSERT INTO usuarios (usuario, contrasena, nombre) VALUES (?, ?, ?)", ("admin", hash_pass, "Jose (Administrador)"))
+    conn.commit()
+    conn.close()
+
+# Ejecutamos la creación automática al arrancar
+inicializar_base_de_datos()
+# ----------------------------------------------
+
 if 'autenticado' not in st.session_state:
     st.session_state['autenticado'] = False
     st.session_state['usuario'] = ""
@@ -89,7 +132,7 @@ with tab_ajustes:
                 st.success(f"✅ {tipo_contacto} guardado correctamente.")
                 st.rerun()
             except:
-                st.error("❌ Ese nombre ya existe en el sistema.")
+                st.error("❌ Ese nombre ya existe in el sistema.")
 
 with tab_registro:
     st.subheader("Introduce un gasto manual o sube un documento para procesarlo con IA")
