@@ -11,7 +11,40 @@ try:
 except ImportError:
     IA_DISPONIBLE = False
 
-st.set_page_config(page_title="Control de Obra PRO", page_icon="🏗️", layout="wide")
+# Configuración de página con diseño profesional
+st.set_page_config(page_title="Control de Obra PRO", layout="wide")
+
+# --- INYECCIÓN DE DISEÑO Y COLORES NEUTROS (CSS) ---
+st.markdown("""
+    <style>
+        /* Estilos generales de tipografía y fondos */
+        .reportview-container {
+            background-color: #f8f9fa;
+        }
+        /* Personalización de botones principales */
+        div.stButton > button {
+            background-color: #2b3e50 !important;
+            color: white !important;
+            border-radius: 4px !important;
+            border: none !important;
+            padding: 6px 16px !important;
+        }
+        div.stButton > button:hover {
+            background-color: #1a252f !important;
+        }
+        /* Títulos y cabeceras más limpias */
+        h1, h2, h3 {
+            color: #2c3e50 !important;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        /* Estilo para las métricas */
+        div[data-testid="stMetricValue"] {
+            color: #2b3e50 !important;
+            font-weight: bold;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 
 # --- CONEXIÓN AUTOMÁTICA A TU BASE DE DATOS EN LA NUBE ---
 def conectar():
@@ -76,7 +109,7 @@ def check_login(user, password):
     return resultado
 
 if not st.session_state['autenticado']:
-    st.title("🔑 Acceso al Control de Costes de Obra")
+    st.title("Acceso al Control de Costes de Obra")
     with st.form("Login"):
         usuario_input = st.text_input("Usuario")
         clave_input = st.text_input("Contraseña", type="password")
@@ -90,14 +123,14 @@ if not st.session_state['autenticado']:
                 st.session_state['nombre_usuario'] = usuario_valido[0]
                 st.rerun()
             else:
-                st.error("❌ Usuario o contraseña incorrectos")
+                st.error("Usuario o contraseña incorrectos")
     st.stop()
 
-api_key = st.sidebar.text_input("🔑 Google Gemini API Key (Para leer fotos/PDFs)", type="password", value=os.environ.get("GEMINI_API_KEY", ""))
+api_key = st.sidebar.text_input("Google Gemini API Key (Para leer fotos/PDFs)", type="password", value=os.environ.get("GEMINI_API_KEY", ""))
 if api_key and IA_DISPONIBLE:
     genai.configure(api_key=api_key)
 
-st.sidebar.write(f"👷 Bienvenido: **{st.session_state['nombre_usuario']}**")
+st.sidebar.write(f"Bienvenido: **{st.session_state['nombre_usuario']}**")
 if st.sidebar.button("Cerrar Sesión"):
     st.session_state['autenticado'] = False
     st.rerun()
@@ -115,7 +148,7 @@ def obtener_contactos():
 contactos_df = obtener_contactos()
 
 tab_registro, tab_diario, tab_informes, tab_ajustes = st.tabs([
-    "📥 Registrar Gasto / Factura", "📆 Gasto Diario y Semanal", "📊 Informes Mensuales y Anuales", "👥 Proveedores y Personal"
+    "Registrar Gasto / Factura", "Gasto Diario y Semanal", "Informes Mensuales y Anuales", "Proveedores y Personal"
 ])
 
 with tab_ajustes:
@@ -136,10 +169,10 @@ with tab_ajustes:
                 cursor.execute("INSERT INTO contactos (nombre, tipo, telefono) VALUES (?, ?, ?)", (nom_contacto, tipo_contacto, tel_contacto))
                 conn.commit()
                 conn.close()
-                st.success(f"✅ {tipo_contacto} guardado correctamente.")
+                st.success(f"{tipo_contacto} guardado correctamente.")
                 st.rerun()
             except:
-                st.error("❌ Ese nombre ya existe en el sistema.")
+                st.error("Ese nombre ya existe en el sistema.")
 
 with tab_registro:
     st.subheader("Introduce un gasto manual o sube un documento para procesarlo con IA")
@@ -151,7 +184,7 @@ with tab_registro:
     def_importe = 0.0
 
     if factura_subida and api_key and IA_DISPONIBLE:
-        with st.spinner("🤖 Analizando factura con Inteligencia Artificial..."):
+        with st.spinner("Analizando factura con Inteligencia Artificial..."):
             try:
                 model = genai.GenerativeModel('gemini-1.5-flash')
                 bytes_data = factura_subida.read()
@@ -180,7 +213,7 @@ with tab_registro:
                 def_concepto = datos_ia.get("concepto", "")
                 def_importe = float(datos_ia.get("importe", 0.0))
                 def_categoria = datos_ia.get("categoria", "Materiales")
-                st.info(f"🤖 IA detectó: {datos_ia.get('proveedor', 'Desconocido')} | {def_importe} €")
+                st.info(f"IA detectó: {datos_ia.get('proveedor', 'Desconocido')} | {def_importe} €")
             except Exception as e:
                 st.error(f"No se pudo procesar automáticamente: {e}")
 
@@ -211,7 +244,7 @@ with tab_registro:
             )
             conn.commit()
             conn.close()
-            st.success("✅ Gasto anotado en los libros contables.")
+            st.success("Gasto anotado en los libros contables.")
             st.rerun()
 
 conn = conectar()
@@ -256,15 +289,15 @@ if not df_gastos.empty:
         df_filtrado = df_gastos[df_gastos['categoria'].isin(filtro_partida)]
         st.metric("Total de Selección Filtrada", f"{df_filtrado['importe'].sum():,.2f} €")
         
-        st.markdown("### 📅 Cierre Mensual")
+        st.markdown("### Cierre Mensual")
         g_mensual = df_filtrado.groupby(['Mes', 'categoria'])['importe'].sum().unstack(fill_value=0)
         st.dataframe(g_mensual, use_container_width=True)
         
-        st.markdown("### 🗓️ Cierre Anual")
+        st.markdown("### Cierre Anual")
         g_anual = df_filtrado.groupby(['Año', 'categoria'])['importe'].sum().unstack(fill_value=0)
         st.dataframe(g_anual, use_container_width=True)
         
-        st.markdown("### 📋 Registro de Auditoría (Quién metió qué)")
+        st.markdown("### Registro de Auditoría")
         st.dataframe(df_filtrado[['fecha', 'categoria', 'asignado_a', 'concepto', 'importe', 'usuario_registro']], use_container_width=True)
 else:
     with tab_diario:
