@@ -14,33 +14,80 @@ except ImportError:
 # Configuración de página con diseño profesional
 st.set_page_config(page_title="Control de Obra PRO", layout="wide")
 
-# --- INYECCIÓN DE DISEÑO Y COLORES NEUTROS (CSS) ---
+# --- INYECCIÓN DE DISEÑO AVANZADO (Balance de colores neutros y formas) ---
 st.markdown("""
     <style>
-        /* Estilos generales de tipografía y fondos */
-        .reportview-container {
-            background-color: #f8f9fa;
+        /* Fondo general de la aplicación */
+        .stApp {
+            background-color: #f8fafc !important;
         }
-        /* Personalización de botones principales */
+        
+        /* Barra lateral (Sidebar) estilo ejecutivo */
+        section[data-testid="stSidebar"] {
+            background-color: #0f172a !important;
+        }
+        section[data-testid="stSidebar"] __sub-container__ * {
+            color: #f1f5f9 !important;
+        }
+        section[data-testid="stSidebar"] input {
+            background-color: #1e293b !important;
+            border: 1px solid #334155 !important;
+            color: #f1f5f9 !important;
+        }
+
+        /* Tipografías y títulos limpios */
+        h1 {
+            color: #0f172a !important;
+            font-weight: 700 !important;
+            font-family: 'Inter', sans-serif;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 12px;
+            margin-bottom: 25px;
+        }
+        h2, h3, h4 {
+            color: #1e293b !important;
+            font-weight: 600 !important;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Transformar formularios en contenedores tipo Tarjeta (Cards) */
+        div[data-testid="stForm"] {
+            background-color: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 8px !important;
+            padding: 24px !important;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+            margin-bottom: 20px;
+        }
+
+        /* Botones estilizados con azul ejecutivo */
         div.stButton > button {
-            background-color: #2b3e50 !important;
-            color: white !important;
-            border-radius: 4px !important;
+            background-color: #0284c7 !important;
+            color: #ffffff !important;
+            border-radius: 6px !important;
             border: none !important;
-            padding: 6px 16px !important;
+            padding: 8px 20px !important;
+            font-weight: 600 !important;
+            font-size: 14px !important;
+            transition: background-color 0.2s ease;
         }
         div.stButton > button:hover {
-            background-color: #1a252f !important;
+            background-color: #0369a1 !important;
         }
-        /* Títulos y cabeceras más limpias */
-        h1, h2, h3 {
-            color: #2c3e50 !important;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+        /* Pestañas (Tabs) más corporativas */
+        button[data-baseweb="tab"] {
+            font-weight: 600 !important;
+            color: #64748b !important;
         }
-        /* Estilo para las métricas */
-        div[data-testid="stMetricValue"] {
-            color: #2b3e50 !important;
-            font-weight: bold;
+        button[data-baseweb="tab"][aria-selected="true"] {
+            color: #0284c7 !important;
+            border-bottom-color: #0284c7 !important;
+        }
+
+        /* Bloques de información y alertas */
+        div[data-testid="stNotification"] {
+            border-radius: 6px !important;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -48,7 +95,6 @@ st.markdown("""
 
 # --- CONEXIÓN AUTOMÁTICA A TU BASE DE DATOS EN LA NUBE ---
 def conectar():
-    # Extrae las llaves que guardaste en el cajón de "Secrets" de Streamlit
     url = st.secrets["TURSO_URL"]
     token = st.secrets["TURSO_TOKEN"]
     return libsql.connect(database=url, auth_token=token)
@@ -91,7 +137,6 @@ def inicializar_base_de_datos():
     conn.commit()
     conn.close()
 
-# Inicializamos las tablas en la nube de Turso si no existen
 inicializar_base_de_datos()
 # --------------------------------------------------------
 
