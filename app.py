@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import sqlite3
+import libsql  # Usamos libsql en lugar de sqlite3 para conectar con Turso en la nube
 import hashlib
 from datetime import datetime
 import os
@@ -13,10 +13,13 @@ except ImportError:
 
 st.set_page_config(page_title="Control de Obra PRO", page_icon="🏗️", layout="wide")
 
+# --- CONEXIÓN AUTOMÁTICA A TU BASE DE DATOS EN LA NUBE ---
 def conectar():
-    return sqlite3.connect("control_obras_PRO.db")
+    # Extrae las llaves que guardaste en el cajón de "Secrets" de Streamlit
+    url = st.secrets["TURSO_URL"]
+    token = st.secrets["TURSO_TOKEN"]
+    return libsql.connect(database=url, auth_token=token)
 
-# --- NUEVA FUNCIÓN AUTOMÁTICA PARA INTERNET ---
 def inicializar_base_de_datos():
     conn = conectar()
     cursor = conn.cursor()
@@ -55,9 +58,9 @@ def inicializar_base_de_datos():
     conn.commit()
     conn.close()
 
-# Ejecutamos la creación automática al arrancar
+# Inicializamos las tablas en la nube de Turso si no existen
 inicializar_base_de_datos()
-# ----------------------------------------------
+# --------------------------------------------------------
 
 if 'autenticado' not in st.session_state:
     st.session_state['autenticado'] = False
@@ -101,7 +104,11 @@ if st.sidebar.button("Cerrar Sesión"):
 
 def obtener_contactos():
     conn = conectar()
-    df = pd.read_sql_query("SELECT id, nombre, tipo FROM contactos", conn)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, nombre, tipo FROM contactos")
+    rows = cursor.fetchall()
+    columns = [desc[0] for desc in cursor.description]
+    df = pd.DataFrame(rows, columns=columns)
     conn.close()
     return df
 
@@ -132,7 +139,7 @@ with tab_ajustes:
                 st.success(f"✅ {tipo_contacto} guardado correctamente.")
                 st.rerun()
             except:
-                st.error("❌ Ese nombre ya existe in el sistema.")
+                st.error("❌ Ese nombre ya existe en el sistema.")
 
 with tab_registro:
     st.subheader("Introduce un gasto manual o sube un documento para procesarlo con IA")
@@ -208,12 +215,19 @@ with tab_registro:
             st.rerun()
 
 conn = conectar()
+cursor = conn.cursor()
 query = """
 SELECT g.id, g.fecha, g.categoria, g.concepto, g.importe, g.usuario_registro, c.nombre as asignado_a, c.tipo as tipo_contacto
 FROM gastos g LEFT JOIN contactos c ON g.contacto_id = c.id
 ORDER BY g.fecha DESC
 """
-df_gastos = pd.read_sql_query(query, conn)
+cursor.execute(query)
+rows = cursor.fetchall()
+if rows:
+    columns = [desc[0] for desc in cursor.description]
+    df_gastos = pd.DataFrame(rows, columns=columns)
+else:
+    df_gastos = pd.DataFrame()
 conn.close()
 
 if not df_gastos.empty:
